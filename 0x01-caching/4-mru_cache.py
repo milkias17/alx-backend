@@ -6,10 +6,11 @@
 from base_caching import BaseCaching
 
 
-class LRUCache(BaseCaching):
+class MRUCache(BaseCaching):
     """Caching system
     using LRU policy
     """
+
     def __init__(self):
         """Constructor for class
         """
@@ -22,17 +23,19 @@ class LRUCache(BaseCaching):
         if key is None or item is None:
             return
 
-        if len(self.cache_data) < BaseCaching.MAX_ITEMS:
+        if key in self.cache_data:
+            self.cache_data[key] = item
+            self.__access_order.remove(key)
             self.__access_order.append(key)
-        else:
-            discarded = self.__access_order[0]
+            return
+
+        if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
+            discarded = self.__access_order.pop()
+            print(f"DISCARD: {discarded}")
             self.cache_data.pop(discarded)
-            if discarded != key:
-                print(f"DISCARD: {discarded}")
-            self.__access_order = self.__access_order[1:]
-            self.__access_order.append(key)
 
         self.cache_data[key] = item
+        self.__access_order.append(key)
 
     def get(self, key):
         """Get cache data
@@ -40,6 +43,7 @@ class LRUCache(BaseCaching):
         if key is None or key not in self.cache_data:
             return None
 
-        self.__access_order.remove(key)
+        if key in self.__access_order:
+            self.__access_order.remove(key)
         self.__access_order.append(key)
         return self.cache_data.get(key)
